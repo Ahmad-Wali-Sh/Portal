@@ -1,0 +1,45 @@
+// ─────────────────────────────────────────────
+// STUDENTS
+// ─────────────────────────────────────────────
+
+model Student {
+  id           Int      @id @default(autoincrement())
+  name         String
+  lastname     String
+  father_name  String?
+  phone_1      String?
+  phone_2      String?
+  responsible  String?
+  age          Int?
+  home_address String?
+  note         String?
+  image        String?
+  usid         String   @unique // system-generated Unique Student ID
+  password     String // bcrypt hash
+  created_at   DateTime @default(now())
+
+  gender    Gender? @relation(fields: [gender_id], references: [id])
+  gender_id Int?
+
+  // relations
+  studentClasses StudentClasses[]
+  examAnswers    ExamStudentAnswer[]
+  examResults    ExamResult[]
+}
+
+model StudentClasses {
+  id          Int      @id @default(autoincrement())
+  enrolled_at DateTime @default(now())
+
+  student    Student @relation(fields: [student_id], references: [id])
+  student_id Int
+  class      Classes @relation(fields: [class_id], references: [id])
+  class_id   Int
+
+  // relations
+  payments      StudentPayment[]
+  subjectGrades SubjectGrade[]
+  attendances   AttendanceSessionThrough[]
+
+  @@unique([student_id, class_id])
+}

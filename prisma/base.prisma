@@ -1,0 +1,60 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum PaidStatusName {
+  paid
+  partial
+  pending
+}
+
+enum ExamStatusName {
+  draft
+  ongoing
+  finished
+  cancelled
+}
+
+enum QuestionType {
+  four_answer
+  boolean
+  descriptive
+}
+
+enum NotificationType {
+  exam
+  payment
+  session
+  announcement
+  general
+}
+
+enum RecipientType {
+  employee
+  student
+}
+
+enum AnnouncementTarget {
+  all
+  class
+  cycle
+  employee
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+  login
+  grade
+}

@@ -1,0 +1,50 @@
+// ─────────────────────────────────────────────
+// CORE / GENERAL
+// ─────────────────────────────────────────────
+
+model GeneralInformation {
+  id           Int     @id @default(autoincrement())
+  name         String
+  brand_color  String?
+  manager      String?
+  owner        String?
+  location     String?
+  description  String?
+  phone        String?
+  phone2       String?
+  manage_phone String?
+  telegram     String?
+  start_time   String? // stored as "HH:MM"
+  end_time     String?
+}
+
+model Gender {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  employees Employee[]
+  students  Student[]
+}
+
+model Role {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  employees Employee[]
+}
+
+model Permission {
+  id                  Int                  @id @default(autoincrement())
+  name                String               @unique // e.g. "score:submit", "attendance:edit"
+  employeePermissions EmployeePermission[]
+}
+
+model PaidStatus {
+  id              Int              @id @default(autoincrement())
+  name            PaidStatusName   @unique
+  studentPayments StudentPayment[]
+}
+
+model ExamSessionStatus {
+  id           Int            @id @default(autoincrement())
+  name         ExamStatusName @unique
+  examSessions ExamSession[]
+}

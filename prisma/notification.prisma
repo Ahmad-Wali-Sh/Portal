@@ -1,0 +1,29 @@
+// ─────────────────────────────────────────────
+// NOTIFICATIONS & ANNOUNCEMENTS
+// ─────────────────────────────────────────────
+
+model Notification {
+  id             Int              @id @default(autoincrement())
+  recipient_id   Int // FK to Employee.id or Student.id depending on recipient_type
+  recipient_type RecipientType
+  type           NotificationType
+  title          String
+  body           String
+  is_read        Boolean          @default(false)
+  reference_id   Int? // optional link to a related record
+  reference_type String? // e.g. 'exam_session', 'student_payment'
+  created_at     DateTime         @default(now())
+}
+
+model Announcement {
+  id          Int                @id @default(autoincrement())
+  title       String
+  body        String
+  target_type AnnouncementTarget
+  target_id   Int? // nullable FK to Classes.id or Cycle.id depending on target_type
+  created_at  DateTime           @default(now())
+  expires_at  DateTime?
+
+  createdBy  Employee @relation(fields: [created_by], references: [id])
+  created_by Int
+}

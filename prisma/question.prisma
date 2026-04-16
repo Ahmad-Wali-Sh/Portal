@@ -1,0 +1,54 @@
+// ─────────────────────────────────────────────
+// QUESTION BANK
+// ─────────────────────────────────────────────
+
+model Question {
+  id    Int    @id @default(autoincrement())
+  topic String
+
+  subject     Subject  @relation(fields: [subject_id], references: [id])
+  subject_id  Int
+  employee    Employee @relation(fields: [employee_id], references: [id])
+  employee_id Int
+
+  // exactly one of these will be populated depending on question type
+  fourAnswerQuestion  FourAnswerQuestion?
+  booleanQuestion     BooleanQuestion?
+  descriptiveQuestion DescriptiveQuestion?
+
+  examQuestions ExamSessionQuestion[]
+}
+
+model FourAnswerQuestion {
+  id             Int     @id @default(autoincrement())
+  question_text  String
+  option_1       String
+  option_2       String
+  option_3       String
+  option_4       String
+  correct_option Int // 1–4
+  score          Decimal @db.Decimal(5, 2)
+
+  question    Question @relation(fields: [question_id], references: [id])
+  question_id Int      @unique
+}
+
+model BooleanQuestion {
+  id              Int     @id @default(autoincrement())
+  question_text   String
+  correct_boolean Boolean
+  score           Decimal @db.Decimal(5, 2)
+
+  question    Question @relation(fields: [question_id], references: [id])
+  question_id Int      @unique
+}
+
+model DescriptiveQuestion {
+  id            Int     @id @default(autoincrement())
+  question_text String
+  answer_text   String?
+  score         Decimal @db.Decimal(5, 2)
+
+  question    Question @relation(fields: [question_id], references: [id])
+  question_id Int      @unique
+}

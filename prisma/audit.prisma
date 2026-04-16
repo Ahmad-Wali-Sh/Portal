@@ -1,0 +1,16 @@
+// ─────────────────────────────────────────────
+// AUDIT
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id          Int         @id @default(autoincrement())
+  action      AuditAction
+  entity_type String // e.g. 'student', 'payment', 'exam_session'
+  entity_id   Int
+  old_value   Json? // snapshot before change
+  new_value   Json? // snapshot after change
+  timestamp   DateTime    @default(now())
+
+  actor    Employee @relation(fields: [actor_id], references: [id])
+  actor_id Int
+}

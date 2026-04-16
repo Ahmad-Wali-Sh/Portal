@@ -1,3 +1,64 @@
+// ─────────────────────────────────────────────
+// EMPLOYEE
+// ─────────────────────────────────────────────
+
 model Employee {
-    id    Int @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
+  name         String
+  lastname     String
+  email        String   @unique // added for auth
+  password     String // bcrypt hash
+  age          Int?
+  salary       Decimal? @db.Decimal(10, 2)
+  bio          String?
+  phone_number String?
+  image        String?
+  created_at   DateTime @default(now())
+
+  gender    Gender? @relation(fields: [gender_id], references: [id])
+  gender_id Int?
+
+  role    Role? @relation(fields: [role_id], references: [id])
+  role_id Int?
+
+  // relations
+  permissions        EmployeePermission[]
+  certificates       EmployeeCertificate[]
+  classes            Classes[]
+  curriculums        Curriculum[]
+  attendanceSessions AttendanceSession[]
+  paymentsCollected  StudentPayment[]    @relation("CollectedBy")
+  questions          Question[]
+  examSessions       ExamSession[]
+  answersReviewed    ExamStudentAnswer[] @relation("ReviewedBy")
+  subjectGrades      SubjectGrade[]      @relation("RecordedBy")
+  announcements      Announcement[]
+  auditLogs          AuditLog[]
+}
+
+model EmployeePermission {
+  id            Int        @id @default(autoincrement())
+  employee      Employee   @relation(fields: [employee_id], references: [id])
+  employee_id   Int
+  permission    Permission @relation(fields: [permission_id], references: [id])
+  permission_id Int
+
+  @@unique([employee_id, permission_id])
+}
+
+model Certificate {
+  id                   Int                   @id @default(autoincrement())
+  name                 String
+  url                  String
+  employeeCertificates EmployeeCertificate[]
+}
+
+model EmployeeCertificate {
+  id             Int         @id @default(autoincrement())
+  employee       Employee    @relation(fields: [employee_id], references: [id])
+  employee_id    Int
+  certificate    Certificate @relation(fields: [certificate_id], references: [id])
+  certificate_id Int
+
+  @@unique([employee_id, certificate_id])
 }

@@ -1,0 +1,86 @@
+// ─────────────────────────────────────────────
+// ACADEMIC STRUCTURE
+// ─────────────────────────────────────────────
+
+model Subject {
+  id             Int     @id @default(autoincrement())
+  name           String
+  class_score    Decimal? @db.Decimal(5, 2)
+  project_score  Decimal? @db.Decimal(5, 2)
+  final_score    Decimal? @db.Decimal(5, 2)
+  duration       Int?
+  maximum_absent Int?
+
+  // relations
+  cycleSubjects     CycleSubject[]
+  subjectActivates  SubjectActivate[]
+  curriculumEntries CurriculumThrough[]
+  questions         Question[]
+  examSessions      ExamSession[]
+  subjectGrades     SubjectGrade[]
+}
+
+model Cycle {
+  id       Int    @id @default(autoincrement())
+  name     String
+  duration Int?
+  quantity Int?
+
+  // relations
+  cycleSubjects CycleSubject[]
+  classes       Classes[]
+  curriculums   Curriculum[]
+  examSessions  ExamSession[]
+}
+
+model CycleSubject {
+  id         Int     @id @default(autoincrement())
+  cycle      Cycle   @relation(fields: [cycle_id], references: [id])
+  cycle_id   Int
+  subject    Subject @relation(fields: [subject_id], references: [id])
+  subject_id Int
+
+  @@unique([cycle_id, subject_id])
+}
+
+model Location {
+  id       Int       @id @default(autoincrement())
+  name     String
+  quantity Int?
+  classes  Classes[]
+}
+
+model Classes {
+  id                 Int      @id @default(autoincrement())
+  start_date         DateTime @db.Date
+  end_date           DateTime @db.Date
+  time_start         String // "HH:MM"
+  time_end           String
+  installments       Int?
+  installments_price Decimal? @db.Decimal(10, 2)
+
+  cycle       Cycle    @relation(fields: [cycle_id], references: [id])
+  cycle_id    Int
+  location    Location @relation(fields: [location_id], references: [id])
+  location_id Int
+  employee    Employee @relation(fields: [employee_id], references: [id])
+  employee_id Int
+
+  // relations
+  subjectActivates   SubjectActivate[]
+  studentClasses     StudentClasses[]
+  curriculums        Curriculum[]
+  attendanceSessions AttendanceSession[]
+  examSessions       ExamSession[]
+}
+
+model SubjectActivate {
+  id         Int      @id @default(autoincrement())
+  date_start DateTime @db.Date
+  date_end   DateTime @db.Date
+
+  class      Classes @relation(fields: [class_id], references: [id])
+  class_id   Int
+  subject    Subject @relation(fields: [subject_id], references: [id])
+  subject_id Int
+}

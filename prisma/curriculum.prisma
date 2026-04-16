@@ -1,0 +1,35 @@
+// ─────────────────────────────────────────────
+// CURRICULUM
+// ─────────────────────────────────────────────
+
+model Curriculum {
+  id         Int      @id @default(autoincrement())
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  cycle       Cycle    @relation(fields: [cycle_id], references: [id])
+  cycle_id    Int
+  class       Classes? @relation(fields: [class_id], references: [id]) // nullable = cycle-level template
+  class_id    Int?
+  employee    Employee @relation(fields: [employee_id], references: [id])
+  employee_id Int
+
+  entries CurriculumThrough[]
+}
+
+model CurriculumThrough {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  date        DateTime @db.Date
+  day         String?
+
+  curriculum    Curriculum @relation(fields: [curriculum_id], references: [id])
+  curriculum_id Int
+  subject       Subject    @relation(fields: [subject_id], references: [id])
+  subject_id    Int
+
+  // relations
+  attendanceSessions AttendanceSession[]
+}

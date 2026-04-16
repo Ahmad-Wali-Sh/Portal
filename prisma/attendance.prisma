@@ -1,0 +1,40 @@
+// ─────────────────────────────────────────────
+// ATTENDANCE
+// ─────────────────────────────────────────────
+
+model AttendanceSession {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @db.Date
+  description String?
+  problems    String?
+  timestamp   DateTime @default(now())
+
+  class       Classes  @relation(fields: [class_id], references: [id])
+  class_id    Int
+  employee    Employee @relation(fields: [employee_id], references: [id])
+  employee_id Int
+
+  // optional link to the curriculum entry for this session
+  curriculumThrough     CurriculumThrough? @relation(fields: [curriculum_through_id], references: [id])
+  curriculum_through_id Int?
+
+  records AttendanceSessionThrough[]
+}
+
+model AttendanceSessionThrough {
+  id        Int      @id @default(autoincrement())
+  attend    Boolean  @default(false)
+  tardy     Boolean  @default(false)
+  plus      Int      @default(0)
+  minus     Int      @default(0)
+  note      String?
+  date      DateTime @db.Date
+  timestamp DateTime @default(now())
+
+  session    AttendanceSession @relation(fields: [session_id], references: [id])
+  session_id Int
+
+  // linked to StudentClasses (not raw Student) for cross-reference with payments & grades
+  studentClass     StudentClasses @relation(fields: [student_class_id], references: [id])
+  student_class_id Int
+}

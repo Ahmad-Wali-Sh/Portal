@@ -1,0 +1,24 @@
+// ─────────────────────────────────────────────
+// PAYMENTS
+// ─────────────────────────────────────────────
+
+model StudentPayment {
+  id         Int       @id @default(autoincrement())
+  name       String
+  price      Decimal   @db.Decimal(10, 2)
+  discount   Decimal   @default(0) @db.Decimal(10, 2)
+  due_date   DateTime  @db.Date
+  paid_at    DateTime?
+  note       String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  studentClass     StudentClasses @relation(fields: [student_class_id], references: [id])
+  student_class_id Int
+
+  paidStatus     PaidStatus @relation(fields: [paid_status_id], references: [id])
+  paid_status_id Int
+
+  collectedBy  Employee? @relation("CollectedBy", fields: [collected_by], references: [id])
+  collected_by Int?
+}

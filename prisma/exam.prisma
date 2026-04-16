@@ -1,0 +1,96 @@
+// ─────────────────────────────────────────────
+// EXAMS
+// ─────────────────────────────────────────────
+
+model ExamSession {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @db.Date
+  start_time  String // "HH:MM"
+  end_time    String
+  description String?
+  timestamp   DateTime @default(now())
+
+  subject     Subject           @relation(fields: [subject_id], references: [id])
+  subject_id  Int
+  cycle       Cycle             @relation(fields: [cycle_id], references: [id])
+  cycle_id    Int
+  class       Classes           @relation(fields: [class_id], references: [id])
+  class_id    Int
+  employee    Employee          @relation(fields: [employee_id], references: [id])
+  employee_id Int
+  status      ExamSessionStatus @relation(fields: [session_status_id], references: [id])
+  session_status_id Int
+
+  questions ExamSessionQuestion[]
+  answers   ExamStudentAnswer[]
+  results   ExamResult[]
+}
+
+model ExamSessionQuestion {
+  id                  Int          @id @default(autoincrement())
+  question_type       QuestionType
+  question_variant_id Int // raw int pointing to FourAnswerQuestion / BooleanQuestion / DescriptiveQuestion
+  score               Decimal      @db.Decimal(5, 2) // score override for this exam
+  timestamp           DateTime     @default(now())
+
+  examSession     ExamSession @relation(fields: [exam_session_id], references: [id])
+  exam_session_id Int
+  question        Question    @relation(fields: [question_id], references: [id])
+  question_id     Int
+
+  answers ExamStudentAnswer[]
+}
+
+model ExamStudentAnswer {
+  id            Int       @id @default(autoincrement())
+  answer        String?
+  is_correct    Boolean? // null for descriptive until manually reviewed
+  score_awarded Decimal?  @db.Decimal(5, 2) // null until graded
+  reviewed_at   DateTime?
+  timestamp     DateTime  @default(now())
+
+  examSession              ExamSession         @relation(fields: [exam_session_id], references: [id])
+  exam_session_id          Int
+  examQuestion             ExamSessionQuestion @relation(fields: [exam_session_question_id], references: [id])
+  exam_session_question_id Int
+  student                  Student             @relation(fields: [student_id], references: [id])
+  student_id               Int
+
+  reviewedBy   Employee? @relation("ReviewedBy", fields: [reviewed_by], references: [id])
+  reviewed_by  Int?
+}
+
+model ExamResult {
+  id           Int      @id @default(autoincrement())
+  total_score  Decimal  @db.Decimal(8, 2)
+  max_score    Decimal  @db.Decimal(8, 2)
+  percentage   Decimal  @db.Decimal(5, 2)
+  passed       Boolean
+  generated_at DateTime @default(now())
+
+  student         Student     @relation(fields: [student_id], references: [id])
+  student_id      Int
+  examSession     ExamSession @relation(fields: [exam_session_id], references: [id])
+  exam_session_id Int
+
+  @@unique([student_id, exam_session_id])
+}
+
+model SubjectGrade {
+  id            Int      @id @default(autoincrement())
+  score_class   Decimal? @db.Decimal(5, 2)
+  score_project Decimal? @db.Decimal(5, 2)
+  score_final   Decimal? @db.Decimal(5, 2)
+  total         Decimal? @db.Decimal(5, 2)
+  passed        Boolean?
+  recorded_at   DateTime @default(now())
+
+  studentClass     StudentClasses @relation(fields: [student_class_id], references: [id])
+  student_class_id Int
+  subject          Subject        @relation(fields: [subject_id], references: [id])
+  subject_id       Int
+  recordedBy       Employee       @relation("RecordedBy", fields: [recorded_by], references: [id])
+  recorded_by      Int
+
+  @@unique([student_class_id, subject_id])
+}
