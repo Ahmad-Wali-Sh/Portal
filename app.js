@@ -23,4 +23,8 @@ app.get('/api/health', (_req, res) => {
 // ── Global Error Handler (must be last) ───────────────────────────────────────
 // app.use(errorHandler)
 
+app.listen(8000, () => {
+  console.log('Server is Running')
+})
+
 module.exports = app

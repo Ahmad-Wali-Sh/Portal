@@ -26,7 +26,7 @@
  */
 
 const { Router } = require('express')
-const { prisma } = require('../config/prisma')
+const prisma = require('../config/prisma')
 const { buildQuery } = require('./queryBuilder')
 const { runHook } = require('./hookRunner')
 
