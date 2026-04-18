@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 
@@ -24,6 +25,7 @@ app.get('/api/health', (_req, res) => {
 // app.use(errorHandler)
 
 app.listen(8000, () => {
+  console.log(process.env.DATABASE_URL)
   console.log('Server is Running')
 })
 
