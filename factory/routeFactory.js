@@ -65,7 +65,8 @@ function buildResourceRouter(config) {
     router.get('/', async (req, res, next) => {
       try {
         await runHook(hooks.beforeGetAll, req, res, undefined)
-
+// employee/?name=sharify
+// employee confing: searchFields: [name, lastname]
         const { where, orderBy, skip, take, _page, _limit } = buildQuery(
           req.query,
           searchFields

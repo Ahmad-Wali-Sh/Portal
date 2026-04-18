@@ -58,7 +58,7 @@ const routeConfig = [
   {
     model: 'gender',
     basePath: '/api/genders',
-    routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
+    routes: ['getAll', 'getById', 'post', 'patch','put', 'delete'],
     searchFields: ['name'],
   },
 
@@ -120,7 +120,7 @@ const routeConfig = [
     include: {
       cycle: true,
       location: true,
-      employee: { select: { id: true, name: true, lastname: true } },
+      employee: { select: { id: true, name: true, lastname: true,email: true  } },
     },
   },
 
