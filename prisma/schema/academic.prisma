@@ -18,6 +18,7 @@ model Subject {
   questions         Question[]
   examSessions      ExamSession[]
   subjectGrades     SubjectGrade[]
+  resources         Resource[]
 }
 
 model Cycle {
@@ -72,6 +73,7 @@ model Classes {
   curriculums        Curriculum[]
   attendanceSessions AttendanceSession[]
   examSessions       ExamSession[]
+  resources          Resource[]
 }
 
 model SubjectActivate {

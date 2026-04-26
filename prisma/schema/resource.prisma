@@ -1,0 +1,24 @@
+// ─────────────────────────────────────────────
+// RESOURCE MODEL
+// ─────────────────────────────────────────────
+
+model Resource {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  category    String    @default("documents") // documents, links, code_files, templates, media, tools
+  type        String    @default("document")   // document, link, file, media, tool
+  url         String?
+  file_path   String?
+  visibility  String    @default("all")        // all, instructor
+  subject_id  Int?
+  class_id    Int?
+  created_by  Int?
+
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  subject     Subject?  @relation(fields: [subject_id], references: [id])
+  class       Classes?  @relation(fields: [class_id], references: [id])
+  employee    Employee? @relation(fields: [created_by], references: [id])
+}

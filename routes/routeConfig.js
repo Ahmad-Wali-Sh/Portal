@@ -344,7 +344,7 @@ const routeConfig = [
     model: 'resource',
     basePath: '/api/resources',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    searchFields: ['name', 'description'],
+    searchFields: ['title', 'description'],
     include: {
       subject: true,
       class: true,
