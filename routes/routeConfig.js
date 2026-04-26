@@ -339,6 +339,19 @@ const routeConfig = [
     orderBy: { created_at: 'desc' },
   },
 
+  // ── RESOURCES ──────────────────────────────────────────────────────────
+  {
+    model: 'resource',
+    basePath: '/api/resources',
+    routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
+    searchFields: ['name', 'description'],
+    include: {
+      subject: true,
+      class: true,
+      employee: { select: { id: true, name: true, lastname: true } },
+    },
+  },
+
 ]
 
 module.exports = { routeConfig }
