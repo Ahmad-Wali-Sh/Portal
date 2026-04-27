@@ -33,6 +33,8 @@ model Cycle {
   examSessions  ExamSession[]
 }
 
+
+
 model CycleSubject {
   id         Int     @id @default(autoincrement())
   cycle      Cycle   @relation(fields: [cycle_id], references: [id])

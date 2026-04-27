@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 
@@ -22,5 +23,9 @@ app.get('/api/health', (_req, res) => {
 
 // ── Global Error Handler (must be last) ───────────────────────────────────────
 // app.use(errorHandler)
+
+app.listen(8000, () => {
+  console.log('Sever is runnong...')
+})
 
 module.exports = app

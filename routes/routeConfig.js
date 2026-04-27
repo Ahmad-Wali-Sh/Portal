@@ -16,8 +16,8 @@
  *                             beforeUpdate, afterUpdate, beforeDelete, afterDelete
  */
 
-const { employeeAuth, studentAuth, requirePermission } = require('../middlewares/auth.middleware')
-const { PERMISSIONS } = require('../config/permissions')
+// const { employeeAuth, studentAuth, requirePermission } = require('../middlewares/auth.middleware')
+// const { PERMISSIONS } = require('../config/permissions')
 const { generateInstallments } = require('../services/installment.service')
 
 /** @type {import('../factory/routeFactory').ResourceConfig[]} */
@@ -28,7 +28,7 @@ const routeConfig = [
     model: 'generalInformation',
     basePath: '/api/general',
     routes: ['getAll', 'getById', 'patch'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.SETTINGS_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.SETTINGS_MANAGE)],
   },
 
   // ── EMPLOYEES ────────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ const routeConfig = [
     model: 'employee',
     basePath: '/api/employees',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.EMPLOYEE_VIEW)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.EMPLOYEE_VIEW)],
     searchFields: ['name', 'lastname', 'email', 'phone_number'],
     include: { role: true, gender: true },
     hooks: {
@@ -61,7 +61,7 @@ const routeConfig = [
     model: 'gender',
     basePath: '/api/genders',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.SETTINGS_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.SETTINGS_MANAGE)],
     searchFields: ['name'],
   },
 
@@ -70,7 +70,7 @@ const routeConfig = [
     model: 'role',
     basePath: '/api/roles',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.SETTINGS_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.SETTINGS_MANAGE)],
     searchFields: ['name'],
   },
 
@@ -79,7 +79,7 @@ const routeConfig = [
     model: 'permission',
     basePath: '/api/permissions',
     routes: ['getAll', 'getById'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.SETTINGS_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.SETTINGS_MANAGE)],
     searchFields: ['name'],
   },
 
@@ -88,7 +88,7 @@ const routeConfig = [
     model: 'location',
     basePath: '/api/locations',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.SETTINGS_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.SETTINGS_MANAGE)],
     searchFields: ['name'],
   },
 
@@ -97,7 +97,7 @@ const routeConfig = [
     model: 'subject',
     basePath: '/api/subjects',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.SUBJECT_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.SUBJECT_MANAGE)],
     searchFields: ['name'],
   },
 
@@ -106,7 +106,7 @@ const routeConfig = [
     model: 'cycle',
     basePath: '/api/cycles',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.CYCLE_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.CYCLE_MANAGE)],
     searchFields: ['name'],
     include: { cycleSubjects: { include: { subject: true } } },
   },
@@ -116,7 +116,7 @@ const routeConfig = [
     model: 'cycleSubject',
     basePath: '/api/cycle-subjects',
     routes: ['getAll', 'getById', 'post', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.CYCLE_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.CYCLE_MANAGE)],
     include: { cycle: true, subject: true },
   },
 
@@ -125,7 +125,7 @@ const routeConfig = [
     model: 'classes',
     basePath: '/api/classes',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.CLASS_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.CLASS_MANAGE)],
     searchFields: [],
     include: {
       cycle: true,
@@ -139,7 +139,7 @@ const routeConfig = [
     model: 'subjectActivate',
     basePath: '/api/subject-activations',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.CLASS_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.CLASS_MANAGE)],
     include: { class: true, subject: true },
   },
 
@@ -148,7 +148,7 @@ const routeConfig = [
     model: 'student',
     basePath: '/api/students',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.STUDENT_VIEW)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.STUDENT_VIEW)],
     searchFields: ['name', 'lastname', 'usid', 'phone_1', 'father_name'],
     include: { gender: true },
     hooks: {
@@ -173,7 +173,7 @@ const routeConfig = [
     model: 'studentClasses',
     basePath: '/api/student-classes',
     routes: ['getAll', 'getById', 'post', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.STUDENT_EDIT)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.STUDENT_EDIT)],
     include: {
       student: { select: { id: true, name: true, lastname: true, usid: true } },
       class: { include: { cycle: true, location: true } },
@@ -192,7 +192,7 @@ const routeConfig = [
     model: 'curriculum',
     basePath: '/api/curriculums',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.CURRICULUM_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.CURRICULUM_MANAGE)],
     searchFields: ['name'],
     include: {
       cycle: true,
@@ -207,7 +207,7 @@ const routeConfig = [
     model: 'curriculumThrough',
     basePath: '/api/curriculum-entries',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.CURRICULUM_MANAGE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.CURRICULUM_MANAGE)],
     searchFields: ['name', 'description'],
     include: { curriculum: true, subject: true },
   },
@@ -217,7 +217,7 @@ const routeConfig = [
     model: 'attendanceSession',
     basePath: '/api/attendance-sessions',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.ATTENDANCE_VIEW)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.ATTENDANCE_VIEW)],
     include: {
       class: true,
       employee: { select: { id: true, name: true, lastname: true } },
@@ -231,7 +231,7 @@ const routeConfig = [
     model: 'attendanceSessionThrough',
     basePath: '/api/attendance-records',
     routes: ['getAll', 'getById', 'post', 'patch'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.ATTENDANCE_SUBMIT)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.ATTENDANCE_SUBMIT)],
     include: {
       session: true,
       studentClass: {
@@ -245,7 +245,7 @@ const routeConfig = [
     model: 'studentPayment',
     basePath: '/api/payments',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.PAYMENT_VIEW)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.PAYMENT_VIEW)],
     searchFields: ['name', 'note'],
     include: {
       studentClass: {
@@ -276,7 +276,7 @@ const routeConfig = [
     model: 'question',
     basePath: '/api/questions',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.EXAM_CREATE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.EXAM_CREATE)],
     searchFields: ['topic'],
     include: {
       subject: true,
@@ -292,7 +292,7 @@ const routeConfig = [
     model: 'examSession',
     basePath: '/api/exam-sessions',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.EXAM_VIEW)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.EXAM_VIEW)],
     searchFields: ['description'],
     include: {
       subject: true,
@@ -308,7 +308,7 @@ const routeConfig = [
     model: 'examResult',
     basePath: '/api/exam-results',
     routes: ['getAll', 'getById', 'post'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.EXAM_GRADE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.EXAM_GRADE)],
     include: {
       student: { select: { id: true, name: true, lastname: true, usid: true } },
       examSession: { include: { subject: true } },
@@ -320,7 +320,7 @@ const routeConfig = [
     model: 'subjectGrade',
     basePath: '/api/subject-grades',
     routes: ['getAll', 'getById', 'post', 'patch'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.SCORE_VIEW)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.SCORE_VIEW)],
     include: {
       studentClass: {
         include: { student: { select: { id: true, name: true, lastname: true, usid: true } } },
@@ -335,7 +335,7 @@ const routeConfig = [
     model: 'announcement',
     basePath: '/api/announcements',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.ANNOUNCEMENT_CREATE)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.ANNOUNCEMENT_CREATE)],
     searchFields: ['title', 'body'],
     include: {
       createdBy: { select: { id: true, name: true, lastname: true } },
@@ -347,7 +347,7 @@ const routeConfig = [
     model: 'auditLog',
     basePath: '/api/audit-logs',
     routes: ['getAll', 'getById'],   // read-only, never create/edit/delete via API
-    middleware: [employeeAuth, requirePermission(PERMISSIONS.AUDIT_VIEW)],
+    // middleware: [employeeAuth, requirePermission(PERMISSIONS.AUDIT_VIEW)],
     searchFields: ['entity_type', 'action'],
     include: {
       actor: { select: { id: true, name: true, lastname: true, email: true } },
@@ -360,7 +360,7 @@ const routeConfig = [
     model: 'notification',
     basePath: '/api/notifications',
     routes: ['getAll', 'getById', 'patch'],  // patch = mark as read
-    middleware: [employeeAuth],
+    // middleware: [employeeAuth],
     orderBy: { created_at: 'desc' },
   },
 
