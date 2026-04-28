@@ -101,6 +101,63 @@ const routeConfig = [
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
     searchFields: ['name'],
     include: { cycleSubjects: { include: { subject: true } } },
+    hooks: {
+      beforeCreate: async (req, res, body) => {
+        // Extract subject_ids to handle separately
+        const { subject_ids, ...cycleData } = body
+        req.subject_ids = subject_ids
+        return cycleData
+      },
+      afterCreate: async (req, res, data) => {
+        // Create CycleSubject relations if subject_ids provided
+        if (req.subject_ids && req.subject_ids.length > 0) {
+          const prisma = require('../config/prisma')
+          await prisma.cycleSubject.createMany({
+            data: req.subject_ids.map((subject_id) => ({
+              cycle_id: data.id,
+              subject_id,
+            })),
+            skipDuplicates: true,
+          })
+        }
+        return data
+      },
+      beforeUpdate: async (req, res, body) => {
+        // Extract subject_ids to handle separately
+        const { subject_ids, ...cycleData } = body
+        req.subject_ids = subject_ids
+        return cycleData
+      },
+      afterUpdate: async (req, res, data) => {
+        // Update CycleSubject relations if subject_ids provided
+        if (req.subject_ids !== undefined) {
+          const prisma = require('../config/prisma')
+          // Delete existing relations
+          await prisma.cycleSubject.deleteMany({
+            where: { cycle_id: data.id },
+          })
+          // Create new relations
+          if (req.subject_ids.length > 0) {
+            await prisma.cycleSubject.createMany({
+              data: req.subject_ids.map((subject_id) => ({
+                cycle_id: data.id,
+                subject_id,
+              })),
+              skipDuplicates: true,
+            })
+          }
+        }
+        return data
+      },
+      beforeDelete: async (req, res, existing) => {
+        // Delete CycleSubject relations before deleting the cycle
+        const prisma = require('../config/prisma')
+        await prisma.cycleSubject.deleteMany({
+          where: { cycle_id: existing.id },
+        })
+        return existing
+      },
+    },
   },
 
   // ── CYCLE SUBJECTS ────────────────────────────────────────────────────────
@@ -341,4 +398,4 @@ const routeConfig = [
 
 ]
 
-module.exports = { routeConfig }
+module.exports = { routeConfig }t
