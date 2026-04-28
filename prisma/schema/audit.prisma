@@ -7,10 +7,12 @@ model AuditLog {
   action      AuditAction
   entity_type String // e.g. 'student', 'payment', 'exam_session'
   entity_id   Int
+   actor_name  String?     // e.g. "Ahmed Al-Rashid" – stored at write time
+  actor_ip    String?     // source IP for security auditing
   old_value   Json? // snapshot before change
   new_value   Json? // snapshot after change
   timestamp   DateTime    @default(now())
 
-  actor    Employee @relation(fields: [actor_id], references: [id])
-  actor_id Int
+  actor   Employee? @relation(fields: [actor_id], references: [id])
+  actor_id Int?
 }

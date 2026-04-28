@@ -3,22 +3,14 @@
  *
  * All API resources are defined here as an array of config objects.
  * The factory reads this and mounts routes automatically onto the Express app.
- *
- * Config fields:
- *   model        {string}     Prisma model name (camelCase, e.g. 'student')
- *   basePath     {string}     URL prefix (e.g. '/api/students')
- *   routes       {string[]}   Which actions to enable: 'getAll','getById','post','patch','put','delete'
- *   middleware   {function[]} Express middleware applied to all routes in this resource
- *   searchFields {string[]}   Fields included in ?search= queries
- *   include      {object}     Prisma include — relations to eager-load
- *   orderBy      {object}     Default sort order override
- *   hooks        {object}     beforeGetAll, beforeGetById, beforeCreate, afterCreate,
- *                             beforeUpdate, afterUpdate, beforeDelete, afterDelete
  */
 
 // const { employeeAuth, studentAuth, requirePermission } = require('../middlewares/auth.middleware')
 // const { PERMISSIONS } = require('../config/permissions')
 const { generateInstallments } = require('../services/installment.service')
+const { writeAuditLog } = require('../services/auditLogger')
+const { auditHooks } = require('../services/auditHooks')
+const prisma = require('../config/prisma')
 
 /** @type {import('../factory/routeFactory').ResourceConfig[]} */
 const routeConfig = [
@@ -28,6 +20,9 @@ const routeConfig = [
     model: 'generalInformation',
     basePath: '/api/general',
     routes: ['getAll', 'getById', 'patch'],
+    hooks: {
+      ...auditHooks('generalInformation', 'general_information', prisma),
+    },
   },
 
   // ── EMPLOYEES ────────────────────────────────────────────────────────────
@@ -38,19 +33,39 @@ const routeConfig = [
     searchFields: ['name', 'lastname', 'email', 'phone_number'],
     include: { role: true, gender: true },
     hooks: {
+      // -- beforeCreate (custom) --
       beforeCreate: async (req, res, body) => {
-        // Password must be hashed before hitting the DB
-        // (registration flow should use a dedicated auth route instead)
-        // This hook is a guard to prevent plain-text passwords via the factory
         if (body.password) {
           const bcrypt = require('bcryptjs')
           body.password = await bcrypt.hash(body.password, 12)
         }
         return body
       },
+      // -- afterCreate (merged: log + audit) --
       afterCreate: async (req, res, data) => {
         console.log(`[employee] Created: ${data.email}`)
+        await writeAuditLog(prisma, {
+          action: 'create',
+          entity_type: 'employee',
+          entity_id: data.id,
+          newValue: data,
+          actor: req.employee,
+          actorIp: req.ip,
+        })
       },
+      // -- beforeUpdate (merged: fetch old + password) --
+      beforeUpdate: async (req, res, body) => {
+        const id = parseInt(req.params.id, 10)
+        req._oldRecord = await prisma.employee.findUnique({ where: { id } })
+        if (body.password) {
+          const bcrypt = require('bcryptjs')
+          body.password = await bcrypt.hash(body.password, 12)
+        }
+        return body
+      },
+      afterUpdate: auditHooks('employee', 'employee', prisma).afterUpdate,
+      beforeDelete: auditHooks('employee', 'employee', prisma).beforeDelete,
+      afterDelete: auditHooks('employee', 'employee', prisma).afterDelete,
     },
   },
 
@@ -58,8 +73,9 @@ const routeConfig = [
   {
     model: 'gender',
     basePath: '/api/genders',
-    routes: ['getAll', 'getById', 'post', 'patch','put', 'delete'],
+    routes: ['getAll', 'getById', 'post', 'patch', 'put', 'delete'],
     searchFields: ['name'],
+    hooks: auditHooks('gender', 'gender', prisma),
   },
 
   // ── ROLES ────────────────────────────────────────────────────────────────
@@ -68,6 +84,7 @@ const routeConfig = [
     basePath: '/api/roles',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
     searchFields: ['name'],
+    hooks: auditHooks('role', 'role', prisma),
   },
 
   // ── PERMISSIONS ──────────────────────────────────────────────────────────
@@ -84,6 +101,7 @@ const routeConfig = [
     basePath: '/api/locations',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
     searchFields: ['name'],
+    hooks: auditHooks('location', 'location', prisma),
   },
 
   // ── SUBJECTS ─────────────────────────────────────────────────────────────
@@ -92,6 +110,7 @@ const routeConfig = [
     basePath: '/api/subjects',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
     searchFields: ['name'],
+    hooks: auditHooks('subject', 'subject', prisma),
   },
 
   // ── CYCLES ───────────────────────────────────────────────────────────────
@@ -101,6 +120,7 @@ const routeConfig = [
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
     searchFields: ['name'],
     include: { cycleSubjects: { include: { subject: true } } },
+    hooks: auditHooks('cycle', 'cycle', prisma),
   },
 
   // ── CYCLE SUBJECTS ────────────────────────────────────────────────────────
@@ -109,6 +129,7 @@ const routeConfig = [
     basePath: '/api/cycle-subjects',
     routes: ['getAll', 'getById', 'post', 'delete'],
     include: { cycle: true, subject: true },
+    hooks: auditHooks('cycleSubject', 'cycle_subject', prisma),
   },
 
   // ── CLASSES ───────────────────────────────────────────────────────────────
@@ -120,8 +141,9 @@ const routeConfig = [
     include: {
       cycle: true,
       location: true,
-      employee: { select: { id: true, name: true, lastname: true,email: true  } },
+      employee: { select: { id: true, name: true, lastname: true, email: true } },
     },
+    hooks: auditHooks('classes', 'class', prisma),
   },
 
   // ── SUBJECT ACTIVATIONS ───────────────────────────────────────────────────
@@ -130,6 +152,7 @@ const routeConfig = [
     basePath: '/api/subject-activations',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
     include: { class: true, subject: true },
+    hooks: auditHooks('subjectActivate', 'subject_activation', prisma),
   },
 
   // ── STUDENTS ──────────────────────────────────────────────────────────────
@@ -141,18 +164,39 @@ const routeConfig = [
     include: { gender: true },
     hooks: {
       beforeCreate: async (req, res, body) => {
-        // Auto-generate USID if not provided
         if (!body.usid) {
           const { generateUSID } = require('../utils/usid')
           body.usid = generateUSID()
         }
-        // Hash initial password
         if (body.password) {
           const bcrypt = require('bcryptjs')
           body.password = await bcrypt.hash(body.password, 12)
         }
         return body
       },
+      afterCreate: async (req, res, data) => {
+        await writeAuditLog(prisma, {
+          action: 'create',
+          entity_type: 'student',
+          entity_id: data.id,
+          newValue: data,
+          actor: req.employee,
+          actorIp: req.ip,
+        })
+        return data
+      },
+      beforeUpdate: async (req, res, body) => {
+        const id = parseInt(req.params.id, 10)
+        req._oldRecord = await prisma.student.findUnique({ where: { id } })
+        if (body.password) {
+          const bcrypt = require('bcryptjs')
+          body.password = await bcrypt.hash(body.password, 12)
+        }
+        return body
+      },
+      afterUpdate: auditHooks('student', 'student', prisma).afterUpdate,
+      beforeDelete: auditHooks('student', 'student', prisma).beforeDelete,
+      afterDelete: auditHooks('student', 'student', prisma).afterDelete,
     },
   },
 
@@ -166,11 +210,20 @@ const routeConfig = [
       class: { include: { cycle: true, location: true } },
     },
     hooks: {
-      // After enrolling a student in a class, auto-generate installment payments
       afterCreate: async (req, res, data) => {
         await generateInstallments(data)
+        await writeAuditLog(prisma, {
+          action: 'create',
+          entity_type: 'student_class',
+          entity_id: data.id,
+          newValue: data,
+          actor: req.employee,
+          actorIp: req.ip,
+        })
         return data
       },
+      beforeDelete: auditHooks('studentClasses', 'student_class', prisma).beforeDelete,
+      afterDelete: auditHooks('studentClasses', 'student_class', prisma).afterDelete,
     },
   },
 
@@ -186,6 +239,7 @@ const routeConfig = [
       employee: { select: { id: true, name: true, lastname: true } },
       entries: { include: { subject: true } },
     },
+    hooks: auditHooks('curriculum', 'curriculum', prisma),
   },
 
   // ── CURRICULUM ENTRIES ────────────────────────────────────────────────────
@@ -195,6 +249,7 @@ const routeConfig = [
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
     searchFields: ['name', 'description'],
     include: { curriculum: true, subject: true },
+    hooks: auditHooks('curriculumThrough', 'curriculum_entry', prisma),
   },
 
   // ── ATTENDANCE SESSIONS ───────────────────────────────────────────────────
@@ -208,6 +263,7 @@ const routeConfig = [
       curriculumThrough: true,
       records: true,
     },
+    hooks: auditHooks('attendanceSession', 'attendance_session', prisma),
   },
 
   // ── ATTENDANCE RECORDS (per student per session) ──────────────────────────
@@ -221,6 +277,7 @@ const routeConfig = [
         include: { student: { select: { id: true, name: true, lastname: true, usid: true } } },
       },
     },
+    hooks: auditHooks('attendanceSessionThrough', 'attendance_record', prisma),
   },
 
   // ── PAYMENTS ──────────────────────────────────────────────────────────────
@@ -237,10 +294,21 @@ const routeConfig = [
       collectedBy: { select: { id: true, name: true, lastname: true } },
     },
     hooks: {
+      afterCreate: async (req, res, record) => {
+        await writeAuditLog(prisma, {
+          action: 'create',
+          entity_type: 'payment',
+          entity_id: record.id,
+          newValue: record,
+          actor: req.employee,
+          actorIp: req.ip,
+        })
+        return record
+      },
       beforeUpdate: async (req, res, body) => {
-        // Auto-set paid_at timestamp when status changes to 'paid'
+        const id = parseInt(req.params.id, 10)
+        req._oldRecord = await prisma.studentPayment.findUnique({ where: { id } })
         if (body.paid_status_id) {
-          const { prisma } = require('../config/prisma')
           const status = await prisma.paidStatus.findUnique({
             where: { id: body.paid_status_id },
           })
@@ -250,6 +318,9 @@ const routeConfig = [
         }
         return body
       },
+      afterUpdate: auditHooks('studentPayment', 'payment', prisma).afterUpdate,
+      beforeDelete: auditHooks('studentPayment', 'payment', prisma).beforeDelete,
+      afterDelete: auditHooks('studentPayment', 'payment', prisma).afterDelete,
     },
   },
 
@@ -266,6 +337,7 @@ const routeConfig = [
       booleanQuestion: true,
       descriptiveQuestion: true,
     },
+    hooks: auditHooks('question', 'question', prisma),
   },
 
   // ── EXAM SESSIONS ─────────────────────────────────────────────────────────
@@ -281,6 +353,26 @@ const routeConfig = [
       employee: { select: { id: true, name: true, lastname: true } },
       status: true,
     },
+    hooks: {
+      afterCreate: async (req, res, record) => {
+        await writeAuditLog(prisma, {
+          action: 'create',
+          entity_type: 'exam_session',
+          entity_id: record.id,
+          newValue: record,
+          actor: req.employee,
+          actorIp: req.ip,
+        })
+      },
+      beforeUpdate: async (req, res, body) => {
+        const id = parseInt(req.params.id, 10)
+        req._oldRecord = await prisma.examSession.findUnique({ where: { id } })
+        return body
+      },
+      afterUpdate: auditHooks('examSession', 'exam_session', prisma).afterUpdate,
+      beforeDelete: auditHooks('examSession', 'exam_session', prisma).beforeDelete,
+      afterDelete: auditHooks('examSession', 'exam_session', prisma).afterDelete,
+    },
   },
 
   // ── EXAM RESULTS ──────────────────────────────────────────────────────────
@@ -291,6 +383,19 @@ const routeConfig = [
     include: {
       student: { select: { id: true, name: true, lastname: true, usid: true } },
       examSession: { include: { subject: true } },
+    },
+    hooks: {
+      afterCreate: async (req, res, data) => {
+        await writeAuditLog(prisma, {
+          action: 'create',
+          entity_type: 'exam_result',
+          entity_id: data.id,
+          newValue: data,
+          actor: req.employee,
+          actorIp: req.ip,
+        })
+        return data
+      },
     },
   },
 
@@ -306,6 +411,7 @@ const routeConfig = [
       subject: true,
       recordedBy: { select: { id: true, name: true, lastname: true } },
     },
+    hooks: auditHooks('subjectGrade', 'subject_grade', prisma),
   },
 
   // ── ANNOUNCEMENTS ────────────────────────────────────────────────────────
@@ -317,13 +423,33 @@ const routeConfig = [
     include: {
       createdBy: { select: { id: true, name: true, lastname: true } },
     },
+    hooks: {
+      afterCreate: async (req, res, data) => {
+        await writeAuditLog(prisma, {
+          action: 'create',
+          entity_type: 'announcement',
+          entity_id: data.id,
+          newValue: data,
+          actor: req.employee,
+          actorIp: req.ip,
+        })
+      },
+      beforeUpdate: async (req, res, body) => {
+        const id = parseInt(req.params.id, 10)
+        req._oldRecord = await prisma.announcement.findUnique({ where: { id } })
+        return body
+      },
+      afterUpdate: auditHooks('announcement', 'announcement', prisma).afterUpdate,
+      beforeDelete: auditHooks('announcement', 'announcement', prisma).beforeDelete,
+      afterDelete: auditHooks('announcement', 'announcement', prisma).afterDelete,
+    },
   },
 
   // ── AUDIT LOGS ────────────────────────────────────────────────────────────
   {
     model: 'auditLog',
     basePath: '/api/audit-logs',
-    routes: ['getAll', 'getById'],   // read-only, never create/edit/delete via API
+    routes: ['getAll', 'getById'],   // read-only
     searchFields: ['entity_type', 'action'],
     include: {
       actor: { select: { id: true, name: true, lastname: true, email: true } },
@@ -335,8 +461,12 @@ const routeConfig = [
   {
     model: 'notification',
     basePath: '/api/notifications',
-    routes: ['getAll', 'getById', 'patch'],  // patch = mark as read
+    routes: ['getAll', 'getById', 'patch'],
     orderBy: { created_at: 'desc' },
+    hooks: {
+      ...auditHooks('notification', 'notification', prisma),
+      // If you need custom patch logic, add it here
+    },
   },
 
 ]
