@@ -157,6 +157,7 @@ function buildResourceRouter(config) {
       if (body.end_date) {
         body.end_date = new Date(body.end_date).toISOString()
       }
+      if (body.date) body.date = new Date(body.date).toISOString();
       // ✅ FIX ENDS HERE
 
       const record = await db.create({
@@ -219,6 +220,7 @@ function buildResourceRouter(config) {
     if (body.end_date) {
       body.end_date = new Date(body.end_date).toISOString()
     }
+    if (body.date) body.date = new Date(body.date).toISOString();
     // ✅ FIX ENDS HERE
 
     const existing = await db.findUnique({ where: { id } })
