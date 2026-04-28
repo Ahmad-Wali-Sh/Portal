@@ -398,4 +398,4 @@ const routeConfig = [
 
 ]
 
-module.exports = { routeConfig }t
+module.exports = { routeConfig }
