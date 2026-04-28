@@ -26,7 +26,7 @@
  */
 
 const { Router } = require('express')
-const prisma = require('../config/prisma')
+const  prisma  = require('../config/prisma')
 const { buildQuery } = require('./queryBuilder')
 const { runHook } = require('./hookRunner')
 
@@ -65,8 +65,7 @@ function buildResourceRouter(config) {
     router.get('/', async (req, res, next) => {
       try {
         await runHook(hooks.beforeGetAll, req, res, undefined)
-// employee/?name=sharify
-// employee confing: searchFields: [name, lastname]
+
         const { where, orderBy, skip, take, _page, _limit } = buildQuery(
           req.query,
           searchFields
@@ -121,56 +120,123 @@ function buildResourceRouter(config) {
     })
   }
 
-  // ── POST (CREATE) ─────────────────────────────────────────────────────────
+  // // ── POST (CREATE) ─────────────────────────────────────────────────────────
+  // if (routes.includes('post')) {
+  //   router.post('/', async (req, res, next) => {
+  //     try {
+  //       let body = req.body
+
+  //       body = await runHook(hooks.beforeCreate, req, res, body)
+
+  //       const record = await db.create({
+  //         data: body,
+  //         ...(include && { include }),
+  //       })
+
+  //       const result = await runHook(hooks.afterCreate, req, res, record)
+
+  //       res.status(201).json({ data: result ?? record })
+  //     } catch (err) {
+  //       next(err)
+  //     }
+  //   })
+  // }
+
   if (routes.includes('post')) {
-    router.post('/', async (req, res, next) => {
-      try {
-        let body = req.body
+  router.post('/', async (req, res, next) => {
+    try {
+      let body = req.body
 
-        body = await runHook(hooks.beforeCreate, req, res, body)
+      body = await runHook(hooks.beforeCreate, req, res, body)
 
-        const record = await db.create({
-          data: body,
-          ...(include && { include }),
-        })
-
-        const result = await runHook(hooks.afterCreate, req, res, record)
-
-        res.status(201).json({ data: result ?? record })
-      } catch (err) {
-        next(err)
+      // ✅ FIX STARTS HERE
+      if (body.start_date) {
+        body.start_date = new Date(body.start_date).toISOString()
       }
-    })
-  }
 
-  // ── PATCH (PARTIAL UPDATE) ────────────────────────────────────────────────
-  if (routes.includes('patch')) {
-    router.patch('/:id', async (req, res, next) => {
-      try {
-        const id = parseInt(req.params.id, 10)
-        if (isNaN(id)) return res.status(400).json({ message: 'Invalid ID' })
-
-        let body = req.body
-
-        body = await runHook(hooks.beforeUpdate, req, res, body)
-
-        const existing = await db.findUnique({ where: { id } })
-        if (!existing) return res.status(404).json({ message: `${model} not found` })
-
-        const record = await db.update({
-          where: { id },
-          data: body,
-          ...(include && { include }),
-        })
-
-        const result = await runHook(hooks.afterUpdate, req, res, record)
-
-        res.json({ data: result ?? record })
-      } catch (err) {
-        next(err)
+      if (body.end_date) {
+        body.end_date = new Date(body.end_date).toISOString()
       }
+      // ✅ FIX ENDS HERE
+
+      const record = await db.create({
+        data: body,
+        ...(include && { include }),
+      })
+
+      const result = await runHook(hooks.afterCreate, req, res, record)
+
+      res.status(201).json({ data: result ?? record })
+    } catch (err) {
+      next(err)
+    }
+  })
+}
+
+  // // ── PATCH (PARTIAL UPDATE) ────────────────────────────────────────────────
+  // if (routes.includes('patch')) {
+  //   router.patch('/:id', async (req, res, next) => {
+  //     try {
+  //       const id = parseInt(req.params.id, 10)
+  //       if (isNaN(id)) return res.status(400).json({ message: 'Invalid ID' })
+
+  //       let body = req.body
+
+  //       body = await runHook(hooks.beforeUpdate, req, res, body)
+
+  //       const existing = await db.findUnique({ where: { id } })
+  //       if (!existing) return res.status(404).json({ message: `${model} not found` })
+
+  //       const record = await db.update({
+  //         where: { id },
+  //         data: body,
+  //         ...(include && { include }),
+  //       })
+
+  //       const result = await runHook(hooks.afterUpdate, req, res, record)
+
+  //       res.json({ data: result ?? record })
+  //     } catch (err) {
+  //       next(err)
+  //     }
+  //   })
+  // }
+
+
+
+  router.patch('/:id', async (req, res, next) => {
+  try {
+    const id = Number(req.params.id)
+    let body = req.body
+
+    body = await runHook(hooks.beforeUpdate, req, res, body)
+
+    // ✅ FIX STARTS HERE
+    if (body.start_date) {
+      body.start_date = new Date(body.start_date).toISOString()
+    }
+
+    if (body.end_date) {
+      body.end_date = new Date(body.end_date).toISOString()
+    }
+    // ✅ FIX ENDS HERE
+
+    const existing = await db.findUnique({ where: { id } })
+    if (!existing) return res.status(404).json({ message: `${model} not found` })
+
+    const record = await db.update({
+      where: { id },
+      data: body,
+      ...(include && { include }),
     })
+
+    const result = await runHook(hooks.afterUpdate, req, res, record)
+
+    res.json({ data: result ?? record })
+  } catch (err) {
+    next(err)
   }
+})
 
   // ── PUT (FULL UPDATE) ─────────────────────────────────────────────────────
   if (routes.includes('put')) {
