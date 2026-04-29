@@ -76,10 +76,17 @@ model Classes {
   resources          Resource[]
 }
 
+enum SubjectStatus {
+  ACTIVE
+  INACTIVE
+  FINISHED
+}
+
 model SubjectActivate {
-  id         Int      @id @default(autoincrement())
-  date_start DateTime @db.Date
-  date_end   DateTime @db.Date
+  id         Int          @id @default(autoincrement())
+  date_start DateTime?    @db.Date
+  date_end   DateTime?    @db.Date
+  status     SubjectStatus @default(INACTIVE)
 
   class      Classes @relation(fields: [class_id], references: [id])
   class_id   Int
