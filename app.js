@@ -4,6 +4,7 @@ const cors = require('cors')
 
 const { registerRoutes } = require('./factory/routeFactory')
 const { routeConfig } = require('./routes/routeConfig')
+const settingsRouter = require('./routes/settings.routes')
 // const { errorHandler } = require('./middlewares/error.middleware')
 
 const app = express()
@@ -15,6 +16,9 @@ app.use(express.json())
 
 // ── Factory Routes (all resources) ───────────────────────────────────────────
 registerRoutes(app, routeConfig)
+
+// ── Settings (custom routes) ──────────────────────────────────────────────────
+app.use('/api/settings', settingsRouter)
 
 // ── Health Check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {

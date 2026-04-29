@@ -53,6 +53,17 @@ const routeConfig = [
       },
     },
   },
+  
+  {
+    model: 'employeePermission',
+    basePath: '/api/employee-permissions',
+    routes: ['getAll', 'getById', 'post', 'delete'],
+    include: {
+      employee: { select: { id: true, name: true, lastname: true, email: true } },
+      permission: true,
+    },
+    orderBy: { employee_id: 'asc' },
+  },
 
   // ── GENDERS ──────────────────────────────────────────────────────────────
   {
