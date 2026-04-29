@@ -130,6 +130,25 @@ const routeConfig = [
     basePath: '/api/subject-activations',
     routes: ['getAll', 'getById', 'post', 'patch', 'delete'],
     include: { class: true, subject: true },
+    hooks: {
+      beforeUpdate: async (req, res, body) => {
+        const prisma = require('../config/prisma')
+        const id = parseInt(req.params.id, 10)
+        const existing = await prisma.subjectActivate.findUnique({ where: { id } })
+
+        // Auto-set date_start when status changes to ACTIVE
+        if (body.status === 'ACTIVE' && existing?.status !== 'ACTIVE') {
+          body.date_start = new Date().toISOString().split('T')[0]
+        }
+
+        // Auto-set date_end when status changes to FINISHED
+        if (body.status === 'FINISHED' && existing?.status !== 'FINISHED') {
+          body.date_end = new Date().toISOString().split('T')[0]
+        }
+
+        return body
+      },
+    },
   },
 
   // ── STUDENTS ──────────────────────────────────────────────────────────────
