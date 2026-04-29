@@ -5,6 +5,7 @@ const cors = require('cors')
 const { registerRoutes } = require('./factory/routeFactory')
 const { routeConfig } = require('./routes/routeConfig')
 const settingsRouter = require('./routes/settings.routes')
+const overviewRoutes = require('./routes/custom/overview.routes')
 // const { errorHandler } = require('./middlewares/error.middleware')
 
 const app = express()
@@ -19,6 +20,8 @@ registerRoutes(app, routeConfig)
 
 // ── Settings (custom routes) ──────────────────────────────────────────────────
 app.use('/api/settings', settingsRouter)
+// ── Custom Routes ────────────────────────────────────────────────────────────
+app.use('/api/overview', overviewRoutes)
 
 // ── Health Check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
